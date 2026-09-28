@@ -1,0 +1,63 @@
+# ============================================================
+# MediaPlayer 音视频直播项目 .gitignore
+# 原则：只提交源码 + 编译期依赖，忽略编译产物与运行时依赖
+# ============================================================
+
+# ---------- Qt / C++ 编译产物 ----------
+# 中间目标文件
+*.o
+*.obj
+*.lo
+*.slo
+
+# 运行时二进制：可执行文件与动态库一律不提交
+*.exe
+*.dll
+*.dSYM/
+*.pdb
+
+# 注意：此处故意【不】忽略 *.dll.a
+# ffmpeg-4.2.2/lib 下的 libav*.dll.a 是 MinGW 的导入库（不是动态库），
+# 链接期必需，必须提交。同理 *.lib / *.def 也必须提交。
+
+# ---------- qmake / Qt Creator 生成物 ----------
+# Qt 元对象、资源、界面自动生成文件
+moc_*.cpp
+moc_*.h
+qrc_*.cpp
+ui_*.h
+*.moc
+
+# qmake 生成的构建脚本
+Makefile
+Makefile.*
+.qmake.stash
+*.qmake.stash
+
+# Qt Creator 个人配置（含本机绝对路径，他人无法使用）
+*.pro.user
+*.pro.user.*
+
+# ---------- 构建目录 ----------
+build-*/
+build*/
+debug/
+release/
+
+# ---------- 第三方依赖：仅保留编译期文件 ----------
+# 运行时 dll / 命令行工具体积大（约 103MB）且编译不需要，
+# 由 README 说明如何自行准备；头文件与导入库已提交。
+ffmpeg-4.2.2/bin/
+SDL2-2.0.10/bin/
+dll/
+
+# ---------- 操作系统 / 编辑器 ----------
+Thumbs.db
+Desktop.ini
+ehthumbs.db
+.DS_Store
+*~
+*.swp
+*.swo
+.idea/
+.vscode/
