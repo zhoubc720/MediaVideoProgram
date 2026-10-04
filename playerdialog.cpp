@@ -71,17 +71,17 @@ void PlayerDialog::on_pb_start_clicked()
 void PlayerDialog::slot_setImage(QImage img)
 {
 
-    //pixmap和image
-    //缩放
-    QPixmap pixmap;
-    if(!img.isNull())
-        pixmap = QPixmap::fromImage(img.scaled(ui->lb_show->size(),Qt::KeepAspectRatio));
-    else
-        pixmap = QPixmap::fromImage(img);
-    ui->lb_show->setPixmap(pixmap);
+//    //pixmap和image
+//    //缩放
+//    QPixmap pixmap;
+//    if(!img.isNull())
+//        pixmap = QPixmap::fromImage(img.scaled(ui->lb_show->size(),Qt::KeepAspectRatio));
+//    else
+//        pixmap = QPixmap::fromImage(img);
+//    ui->lb_show->setPixmap(pixmap);
 
-//    //实现视频加速渲染 OpenGL
-//    ui->wdg_show->slot_setImage(img);
+    //实现视频加速渲染 OpenGL
+    ui->wdg_show->slot_setImage(img);
 }
 
 
