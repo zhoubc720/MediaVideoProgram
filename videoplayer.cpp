@@ -1,6 +1,6 @@
 #include "videoplayer.h"
 #include <QDebug>
-
+#include <ctime>
 //AVFrame wanted_frame;
 //PacketQueue audio_queue;
 //int quit = 0;
@@ -14,10 +14,30 @@ int find_stream_index(AVFormatContext *pformat_ctx, int *video_stream, int* audi
 
 #define FLUSH_DATA "FLUSH"
 
+// 回调函数的参数，时间和有无流的判断
+typedef struct {
+    time_t lasttime;
+    bool connected;
+} Runner;
+// 回调函数
+int interrupt_callback(void *p) {
+    Runner *r = (Runner *)p;
+    if (r->lasttime > 0) {
+        if (time(NULL) - r->lasttime > 20 && !r->connected) {
+            // 等待超过 20s 则中断
+            return 1;
+        }
+    }
+    return 0;
+}
+
 VideoPlayer::VideoPlayer()
 {
     m_playerState = PlayerState::Stop;
     m_videoState.readThreadFinished = true;
+
+    avformat_network_init();
+    avdevice_register_all();
 }
 
 //时间补偿函数--视频延时
@@ -186,7 +206,20 @@ Uint32 timer_callback(Uint32 interval, void *param)
                    pCodecCtx->width, pCodecCtx->height);
     do
     {
-        if (packet_queue_get(is->videoq, packet, 1) <= 0) break;//队列里面没有数据了
+        if(is->quit) break;
+        if (packet_queue_get(is->videoq, packet, 0) <= 0)
+        {
+            if(is->readFinished&&(is->audioq == NULL || is->audioq->nb_packets == 0))//播放到结束
+            {
+                //读线程完毕
+                break;
+            }
+            else
+            {
+                SDL_Delay(1);//只是队列里面暂时没有数据而已
+                continue;
+            }
+        }
         //读取完毕了
         ret = avcodec_decode_video2(pCodecCtx, pFrame, &got_picture,packet);
         if (ret < 0) {
@@ -255,11 +288,18 @@ void VideoPlayer::stop(bool isWait)
     m_videoState .quit = 1;
     if( isWait ) //阻塞标志
     {
-        while(!m_videoState.readThreadFinished )//等待读取线程退出
+        while(m_videoState.videoStream!=-1 && !m_videoState.readThreadFinished )//等待读取线程退出
         {
+            if(m_videoState.audioStream == -1)
+            {
+                SDL_RemoveTimer(m_videoState.m_timer_id);
+                m_videoState.videoThreadFinished = true;
+            }
             SDL_Delay(10);
         }
     }
+    qDebug()<<"video finish";
+
     //关闭 SDL 音频设备
     if (m_videoState.audioID != 0)
     {
@@ -340,6 +380,13 @@ void VideoPlayer::run()
     //2.需要分配一个 AVFormatContext，FFMPEG 所有的操作都要通过这个 AVFormatContext 来进行 可
     //以理解为视频文件指针
     AVFormatContext *pFormatCtx = avformat_alloc_context();
+
+    //添加解决打开资源阻塞
+    Runner input_runner = { 0 };
+    pFormatCtx->interrupt_callback.callback = interrupt_callback;
+    pFormatCtx->interrupt_callback.opaque = &input_runner;
+    input_runner.lasttime = time(NULL);
+    input_runner.connected = false;
     //3.打开视频文件并获取信息
     //接着调用打开视频文件
     //中文兼容
@@ -347,10 +394,20 @@ void VideoPlayer::run()
     const char* file_path = path.c_str();
     //打开视频文件
     //3. 打开视频文件
-    if( avformat_open_input(&pFormatCtx, file_path, NULL, NULL) != 0 )
+    int res = avformat_open_input(&pFormatCtx, file_path, NULL, NULL);
+    if( res < 0 )
     {
         qDebug()<<"can't open file";
+        avformat_close_input(&pFormatCtx);
+        //回收资源之后,在最后添加读取文件线程退出标志.
+        m_videoState.readThreadFinished = true;
+        //视频自动结束 置标志位
+        m_playerState = PlayerState::Stop;
+        stop(true);
         return;
+    }else
+    {
+        input_runner.connected = true;
     }
     //3.1 获取视频文件信息
     if (avformat_find_stream_info(pFormatCtx, NULL) < 0)
@@ -429,8 +486,8 @@ void VideoPlayer::run()
             double pts_diff = 1/ fps ;
             qDebug()<<"时间间隔"<<pts_diff*1000;
             //获取画面的间隔时间
-            SDL_TimerID timer_id = SDL_AddTimer( pts_diff*1000, timer_callback, &m_videoState);
-            if (timer_id == 0) {
+            m_videoState.m_timer_id = SDL_AddTimer( pts_diff*1000, timer_callback, &m_videoState);
+            if (m_videoState.m_timer_id == 0) {
                 fprintf(stderr, "SDL_AddTimer Error: %s\n", SDL_GetError());
                 return;
             }

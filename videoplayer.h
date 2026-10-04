@@ -77,6 +77,8 @@ typedef struct VideoState {
         audio_clock = video_clock = start_time = 0;
     }
     VideoPlayer* m_player;//用于调用函数
+
+    SDL_TimerID m_timer_id;
 } VideoState;
 
 

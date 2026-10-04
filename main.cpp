@@ -19,6 +19,13 @@ extern "C"
 #undef main
 int main(int argc, char *argv[])
 {
+//    // OpenGL 后端选择：必须在 QApplication 构造之前设置
+//    // 依次可试（改这一行即可）：
+//    //   Qt::AA_UseOpenGLES      -> ANGLE，走 D3D11，通常最快
+//    //   Qt::AA_UseSoftwareOpenGL-> 软件渲染(opengl32sw.dll)，最稳但慢
+//    //   Qt::AA_UseDesktopOpenGL -> 桌面 OpenGL
+//    //QApplication::setAttribute(Qt::AA_UseOpenGLES);
+//    QApplication::setAttribute(Qt::AA_UseSoftwareOpenGL);
     QApplication a(argc, argv);
     //这里简单的输出一个版本号
      cout << "Hello FFmpeg!" << endl;

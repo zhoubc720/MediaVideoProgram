@@ -22,6 +22,9 @@ HEADERS += \
 FORMS += \
     playerdialog.ui
 
+include(./opengl/opengl.pri)
+INCLUDEPATH += ./opengl/
+
 INCLUDEPATH += $$PWD/ffmpeg-4.2.2/include\
                 $$PWD/SDL2-2.0.10/include
 

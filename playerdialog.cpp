@@ -1,7 +1,11 @@
 #include "playerdialog.h"
 #include "ui_playerdialog.h"
 #include <QDebug>
-#define _DEF_PATH "D:/VideoForVideoProgramTest/101.mp4"
+#define _DEF_PATH "rtmp://192.168.30.129:1935/vod/104.mp4"
+//#define _DEF_PATH "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
+#define _DEF_LIVE_PATH "rtmp://192.168.30.129:1935/videotest/user=100"
+//#define _DEF_SHANDONG_LIVE_PATH "rtmp://58.200.131.2:1935/livetv/sdtv"
+
 PlayerDialog::PlayerDialog(QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::PlayerDialog)
@@ -42,18 +46,23 @@ void PlayerDialog::on_pb_start_clicked()
     //开始播放->一段时间内，获取图片
     //    m_player->start();
 
+
+    //打开浏览选择文件
+    QString path = QFileDialog::getOpenFileName(this,"打开文件","./","视频文件 (*.flv *.rmvb *.avi *.MP4 *.mkv);; 所有文件(*.*);;");
+
     //首先 要先关闭 判断当前状态 stop
     if(m_player->playerState() != PlayerState::Stop)
     {
         m_player->stop(true);
     }
-    //打开浏览选择文件
-    QString path = QFileDialog::getOpenFileName(this,"打开文件","./","视频文件 (*.flv *.rmvb *.avi *.MP4 *.mkv);; 所有文件(*.*);;");
-
     //判断
     if(path.isEmpty()) return;
     //设置 m_play filemName
     m_player->setFileName(path);
+
+    //    m_player->setFileName(_DEF_PATH);
+    //    m_player->setFileName(_DEF_LIVE_PATH);
+    m_player->start();
 
     slot_PlayerStateChanged(PlayerState::Playing);
 
@@ -61,6 +70,7 @@ void PlayerDialog::on_pb_start_clicked()
 
 void PlayerDialog::slot_setImage(QImage img)
 {
+
     //pixmap和image
     //缩放
     QPixmap pixmap;
@@ -69,6 +79,9 @@ void PlayerDialog::slot_setImage(QImage img)
     else
         pixmap = QPixmap::fromImage(img);
     ui->lb_show->setPixmap(pixmap);
+
+//    //实现视频加速渲染 OpenGL
+//    ui->wdg_show->slot_setImage(img);
 }
 
 
@@ -110,11 +123,7 @@ void PlayerDialog::slot_PlayerStateChanged(int state)
 
         ui->pb_pause->hide();
         ui->pb_resume->show();
-    {
-        QImage img;
-        img.fill( Qt::black);
-        slot_setImage( img );
-    }
+
         this->update();
         isStop = true;
         break;
