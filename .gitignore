@@ -52,6 +52,10 @@ release/
 **/SDL2-2.0.10/bin/
 **/dll/
 
+# OpenCV：只提交 include + lib 供编译；运行时 bin 与 etc 数据不提交
+**/opencv-release/bin/
+**/opencv-release/etc/
+
 # ---------- 操作系统 / 编辑器 ----------
 Thumbs.db
 Desktop.ini
