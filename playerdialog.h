@@ -36,6 +36,8 @@ private slots:
 
     //事件过滤器
     bool eventFilter(QObject* obj,QEvent* event);
+    void on_pb_setUrl_clicked();
+
 private:
     Ui::PlayerDialog *ui;
 

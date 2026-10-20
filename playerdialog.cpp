@@ -201,3 +201,17 @@ bool PlayerDialog::eventFilter(QObject *obj, QEvent *event)
     // pass the event on to the parent class
     return QDialog::eventFilter(obj, event);
 }
+
+#include <QInputDialog>
+void PlayerDialog::on_pb_setUrl_clicked()
+{
+    QString url = QInputDialog::getText(this,"设置","输入链接地址:",QLineEdit::Normal,_DEF_LIVE_PATH);
+    if(url.isEmpty()) return;
+
+    m_player->setFileName(url);
+
+    m_player->start();
+
+    slot_PlayerStateChanged(PlayerState::Playing);
+}
+
