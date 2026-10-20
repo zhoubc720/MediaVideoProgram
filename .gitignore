@@ -47,9 +47,10 @@ release/
 # ---------- 第三方依赖：仅保留编译期文件 ----------
 # 运行时 dll / 命令行工具体积大（约 103MB）且编译不需要，
 # 由 README 说明如何自行准备；头文件与导入库已提交。
-ffmpeg-4.2.2/bin/
-SDL2-2.0.10/bin/
-dll/
+# 使用 **/ 前缀：本仓库改为 monorepo 后，子目录（MediaPlayer/、VideoRecorder/）同样生效
+**/ffmpeg-4.2.2/bin/
+**/SDL2-2.0.10/bin/
+**/dll/
 
 # ---------- 操作系统 / 编辑器 ----------
 Thumbs.db
